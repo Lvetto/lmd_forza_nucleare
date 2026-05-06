@@ -1,6 +1,6 @@
 import numpy as np
 import scipy.special as special_function
-import constants as const
+import utils.lib.constants as const
 import sys
 
 # Copyright 2023 Andreas Ekström

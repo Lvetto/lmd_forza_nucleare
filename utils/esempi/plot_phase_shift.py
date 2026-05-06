@@ -2,12 +2,12 @@ import sys
 sys.path.append('./../lib')
 
 import numpy as np
-import nn_studio as nn_studio
-import chiral_potential as chiral_potential
+import utils.lib.nn_studio as nn_studio
+import utils.lib.chiral_potential as chiral_potential
 import matplotlib.pyplot as plt
-import granada_phases as granada
-import auxiliary as aux
-import lec_values as lec_values
+import utils.lib.granada_phases as granada
+import utils.lib.auxiliary as aux
+import utils.lib.lec_values as lec_values
 
 from scipy.optimize import least_squares
 
@@ -49,7 +49,7 @@ plt.errorbar(granada.Tlabs,exp_phases, yerr=err_phases,label = 'Granada PWA', co
 plt.plot(nn.Tlabs,delta_lo, label = r'$\chi$EFT LO ($\Lambda=500$ MeV)',color='blue',alpha=0.8,lw=2)
 plt.plot(nn.Tlabs,delta_nlo, label = r'$\chi$EFT NLO ($\Lambda=500$ MeV)',color='green',alpha=0.8,lw=2)
 plt.xlabel(r'$T_\mathrm{Lab}$ (MeV)')
-plt.ylabel(r'phase shif (deg)')
+plt.ylabel(r'phase shift (deg)')
 plt.title(r'$^3$s$_1$')
 plt.legend()
 plt.savefig('lo_nlo_phases.pdf')

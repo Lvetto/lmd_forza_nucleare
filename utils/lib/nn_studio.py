@@ -1,4 +1,4 @@
-import constants as const
+import utils.lib.constants as const
 import numpy as np
 
 # Copyright 2023 Andreas Ekström

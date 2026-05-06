@@ -1,6 +1,0 @@
-emcee
-matplotlib
-numpy
-prettyplease
-pyDOE
-scipy

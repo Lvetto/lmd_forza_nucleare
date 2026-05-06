@@ -2,13 +2,13 @@ import sys
 sys.path.append('./../lib')
 
 import numpy as np
-import nn_studio as nn_studio
-import chiral_potential as chiral_potential
+import utils.lib.nn_studio as nn_studio
+import utils.lib.chiral_potential as chiral_potential
 from scipy import linalg
 from scipy.special import spherical_jn as jn
-import auxiliary as aux
+import utils.lib.auxiliary as aux
 import matplotlib.pyplot as plt
-import lec_values as lec_values
+import utils.lib.lec_values as lec_values
 
 # initialize an object for computing T-matrices, phase shifts,
 nn = nn_studio.nn_studio(jmin=0,jmax=1,tzmin=0,tzmax=0,Np=130,mesh_type='gauleg_finite')
