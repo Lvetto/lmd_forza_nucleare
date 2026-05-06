@@ -1,6 +1,3 @@
-#import sys
-#sys.path.append('./../lib')
-
 import numpy as np
 import utils.lib.nn_studio as nn_studio
 import utils.lib.chiral_potential as chiral_potential
