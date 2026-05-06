@@ -57,7 +57,8 @@ class two_nucleon_potential:
     def legP(m,n,x):
         # [0]: get function value (not derivative)
         # [-1,-1]: get 'm', 'n' values
-        return special_function.lpmn(m,n,x)[0][-1,-1]
+        #return special_function.lpmn(m,n,x)[0][-1,-1]
+        return special_function.lpmv(m, n, x)
 
     def setup_legendre_polynomials(self):
 
