@@ -9,6 +9,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$SCRIPT_DIR"
 LIB_DIR="${PROJECT_ROOT}/utils/lib"
+UTILS_DIR="${PROJECT_ROOT}/utils"
 OUTDIR="${1:-${PROJECT_ROOT}/docs/api}"
 DOCFORMAT="${DOCFORMAT:-google}"
 
@@ -31,15 +32,26 @@ fi
 mkdir -p "$OUTDIR"
 export PYTHONPATH="$PROJECT_ROOT:${PYTHONPATH:-}"
 
-# Collect python files (exclude backups)
-mapfile -t FILES < <(find "$LIB_DIR" -maxdepth 1 -type f -name '*.py' ! -name '*bak*' -print)
+# === MODIFICA INIZIO ===
+# Crea o aggiorna __init__.py inserendo il contenuto del README come docstring
+README_FILE="${UTILS_DIR}/README.md"
+INIT_FILE="${LIB_DIR}/__init__.py"
 
-if [ "${#FILES[@]}" -eq 0 ]; then
-  echo "No .py files found in $LIB_DIR" >&2
-  exit 1
+if [ -f "$README_FILE" ]; then
+  echo "Trovato README.md, iniezione in $INIT_FILE come main docstring..."
+  echo '"""' > "$INIT_FILE"
+  cat "$README_FILE" >> "$INIT_FILE"
+  echo '"""' >> "$INIT_FILE"
+else
+  echo "Attenzione: README.md non trovato in $UTILS_DIR"
+  touch "$INIT_FILE" # Crea comunque il file vuoto per renderlo un pacchetto Python
 fi
 
-echo "Generating docs for ${#FILES[@]} modules -> $OUTDIR (docformat=$DOCFORMAT)"
-pdoc --docformat "$DOCFORMAT" --math --mermaid -o "$OUTDIR" "${FILES[@]}"
+echo "Generating docs for package $LIB_DIR -> $OUTDIR (docformat=$DOCFORMAT)"
+
+# Invece di passare la lista di file, passiamo l'intera directory a pdoc.
+# In questo modo pdoc riconoscerà __init__.py e userà il README come index.html
+pdoc --docformat "$DOCFORMAT" --math --mermaid -o "$OUTDIR" "$LIB_DIR"
+# === MODIFICA FINE ===
 
 echo "Docs generated in: $OUTDIR"
