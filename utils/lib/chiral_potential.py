@@ -45,6 +45,7 @@ class two_nucleon_potential:
 
         Args:
             chiral_order (int): the chiral order of the potential, which determines which terms are included in the potential (e.g., LO, NLO, etc.). This parameter is used to specify the level of approximation in the chiral effective field theory expansion.
+            
             Lambda (float): the cutoff parameter used in the regularization of the potential. This parameter controls the high-momentum behavior of the potential and is typically chosen to be around 500 MeV in chiral effective field theory calculations. The cutoff is implemented through a regulator function that suppresses contributions from momenta above Lambda.
             
         Returns:
@@ -85,7 +86,9 @@ class two_nucleon_potential:
         
         Args:
             m (int): order of the associated Legendre polynomial (not used here, set to 0)
+            
             n (int): degree of the associated Legendre polynomial (corresponds to j in P_j(z))
+            
             x (array-like): input array of cos(theta) values where the Legendre polynomials are evaluated
             
         Returns:
@@ -117,7 +120,9 @@ class two_nucleon_potential:
 
         Args:
             W (array-like): array of potential values evaluated at the quadrature points for cos(theta)
+            
             l (int): orbital angular momentum quantum number
+            
             j (int): total angular momentum quantum number
 
         Returns:
@@ -164,11 +169,17 @@ class two_nucleon_potential:
 
         Args:
             W (array-like): array of potential values evaluated at the quadrature points for cos(theta)
+
             pp (float): momentum of the bra state in the partial-wave decomposition
+
             p (float): momentum of the ket state in the partial-wave decomposition
+
             coup (bool): flag indicating whether the channel is coupled (True) or uncoupled (False)
+
             s (int): total spin of the two-nucleon system (0 for singlet, 1 for triplet)
+
             j (int): total angular momentum of the two-nucleon system
+
 
         Returns:
             np.ndarray: array of partial-wave decomposed central force components
@@ -200,11 +211,17 @@ class two_nucleon_potential:
 
         Args:
             W (array-like): array of potential values evaluated at the quadrature points for cos(theta)
+
             pp (float): momentum of the bra state in the partial-wave decomposition
+
             p (float): momentum of the ket state in the partial-wave decomposition
+
             coup (bool): flag indicating whether the channel is coupled (True) or uncoupled (False)
+
             s (int): total spin of the two-nucleon system (0 for singlet, 1 for triplet)
+
             j (int): total angular momentum of the two-nucleon system
+
             
         Returns:
             np.ndarray: array of partial-wave decomposed spin-spin force components
@@ -236,11 +253,17 @@ class two_nucleon_potential:
 
         Args:
             W (array-like): array of potential values evaluated at the quadrature points for cos(theta)
+
             pp (float): momentum of the bra state in the partial-wave decomposition
+
             p (float): momentum of the ket state in the partial-wave decomposition
+
             coup (bool): flag indicating whether the channel is coupled (True) or uncoupled (False)
+
             s (int): total spin of the two-nucleon system (0 for singlet, 1 for triplet)
+
             j (int): total angular momentum of the two-nucleon system
+
 
         Returns:
             np.ndarray: array of partial-wave decomposed tensor force components
@@ -277,12 +300,19 @@ class two_nucleon_potential:
 
         Args:
             pp (float): momentum of the bra state in the partial-wave decomposition
+
             p (float): momentum of the ket state in the partial-wave decomposition
+
             coup (bool): flag indicating whether the channel is coupled (True) or uncoupled (False)
+
             s (int): total spin of the two-nucleon system (0 for singlet, 1 for triplet)
+
             j (int): total angular momentum of the two-nucleon system
+
             t (int): total isospin of the two-nucleon system
+
             tz (int): projection of the total isospin along the z-axis
+
             lecs (dict): dictionary containing the low-energy constants (LECs) for the contact interactions at leading order
 
         Returns:
@@ -304,12 +334,19 @@ class two_nucleon_potential:
 
         Args:
             pp (float): momentum of the bra state in the partial-wave decomposition
+
             p (float): momentum of the ket state in the partial-wave decomposition
+
             coup (bool): flag indicating whether the channel is coupled (True) or uncoupled (False)
+
             s (int): total spin of the two-nucleon system (0 for singlet, 1 for triplet)
+
             j (int): total angular momentum of the two-nucleon system
+
             t (int): total isospin of the two-nucleon system
+
             tz (int): projection of the total isospin along the z-axis
+
             lecs (dict): dictionary containing the low-energy constants (LECs) for the contact interactions at next-to-leading order
 
         Returns:
@@ -359,6 +396,7 @@ class two_nucleon_potential:
 
         Args:
             q2 (float): squared momentum transfer between the two nucleons, defined as q^2 = (p' - p)^2 where p' and p are the momenta of the outgoing and incoming nucleons, respectively. This variable is used in the calculation of the leading two-pion exchange central potential component.
+            
             loop (float): value of the two-pion exchange loop function evaluated at the given q^2. This variable is used in the calculation of the leading two-pion exchange central potential component.
 
         Returns:
@@ -375,6 +413,7 @@ class two_nucleon_potential:
         
         Args:
             q2 (float): squared momentum transfer between the two nucleons, defined as q^2 = (p' - p)^2 where p' and p are the momenta of the outgoing and incoming nucleons, respectively. This variable is used in the calculation of the leading two-pion exchange spin-spin potential component.
+            
             loop (float): value of the two-pion exchange loop function evaluated at the given q^2. This variable is used in the calculation of the leading two-pion exchange spin-spin potential component.
 
         Returns:
@@ -390,6 +429,7 @@ class two_nucleon_potential:
 
         Args:
             q2 (float): squared momentum transfer between the two nucleons, defined as q^2 = (p' - p)^2 where p' and p are the momenta of the outgoing and incoming nucleons, respectively. This variable is used in the calculation of the leading two-pion exchange tensor potential component.
+            
             loop (float): value of the two-pion exchange loop function evaluated at the given q^2. This variable is used in the calculation of the leading two-pion exchange tensor potential component.
 
         Returns:
@@ -420,12 +460,19 @@ class two_nucleon_potential:
 
         Args:
             pp (float): momentum of the bra state in the partial-wave decomposition
+            
             p (float): momentum of the ket state in the partial-wave decomposition
+            
             coup (bool): flag indicating whether the channel is coupled (True) or uncoupled (False)
+            
             s (int): total spin of the two-nucleon system (0 for singlet, 1 for triplet)
+            
             j (int): total angular momentum of the two-nucleon system
+            
             t (int): total isospin of the two-nucleon system
+            
             tz (int): projection of the total isospin along the z-axis
+            
             lecs (dict): dictionary containing the low-energy constants (LECs) for the contact interactions at leading and next-to-leading order
 
         Returns:
