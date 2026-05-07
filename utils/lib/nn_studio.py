@@ -19,8 +19,24 @@ import numpy as np
 #####
 
 class nn_studio:
+    """
+        A class to compute NN scattering observables from a given potential, and to perform model order reduction for emulation.
+    """
 
-    def __init__(self,jmin,jmax,tzmin,tzmax,Np=75,mesh_type='gauleg_infinite'):
+    def __init__(self, jmin, jmax, tzmin, tzmax, Np=75, mesh_type='gauleg_infinite'):
+
+        """
+        Initialize the nn_studio class with the specified parameters for the NN basis and channels, the momentum mesh, and the laboratory kinetic energies for which to compute the T-matrix and phase shifts.
+
+        Args:
+            jmin (int): The minimum total angular momentum J to include in the NN basis and channels.
+            jmax (int): The maximum total angular momentum J to include in the NN basis and channels.
+            tzmin (int): The minimum isospin projection tz to include in the NN basis and channels.
+            tzmax (int): The maximum isospin projection tz to include in the NN basis and channels.
+            Np (int, optional): The number of momentum points in the mesh. Defaults to 75.
+            mesh_type (str, optional): The type of momentum mesh to use, either 'gauleg_infinite' for a Gauss-Legendre mesh on the interval [0, inf), or 'gauleg_finite' for a Gauss-Legendre mesh on a finite interval. Defaults to 'gauleg_infinite'.
+
+        """
 
         self.jmin = jmin
         self.jmax = jmax
@@ -50,6 +66,14 @@ class nn_studio:
         self.phase_shifts = []
         
     def setup_NN_basis(self):
+        
+        """
+        Construct the NN basis states in the JLS coupling scheme, with isospin projection tz, and parity pi=(-1)^L. We include all states with jmin <= J <= jmax and tzmin <= tz <= tzmax, and we only include states that satisfy the Pauli principle, i.e., (L+S+T) must be odd.
+
+        Returns:
+            list of dicts: A list of dictionaries representing the NN basis states.
+        """
+
         basis = []
         for tz in range(self.tzmin,self.tzmax+1,1):
             for J in range(self.jmin,self.jmax+1,1):
@@ -68,6 +92,13 @@ class nn_studio:
         return basis
 
     def setup_NN_channels(self):
+
+        """
+        Construct the NN channels in the JLS coupling scheme, with isospin projection tz, and parity pi=(-1)^L. We include all states with jmin <= J <= jmax and tzmin <= tz <= tzmax, and we only include states that satisfy the Pauli principle, i.e., (L+S+T) must be odd.
+
+        Returns:
+            list of lists of dicts: A list of lists of dictionaries representing the NN channels.
+        """
 
         from itertools import groupby
         from operator import itemgetter
@@ -105,6 +136,17 @@ class nn_studio:
         return NN_channels
 
     def lookup_channel_idx(self, **kwargs):
+
+        """
+        Lookup the channel index for a given set of quantum numbers. The quantum numbers are specified as keyword arguments, e.g., s=1, j=0, tz=0, pi=1. The function will return the indices of the channels that match the specified quantum numbers.
+
+        Args:
+            **kwargs: The quantum numbers to match, specified as keyword arguments.
+        
+        Returns:
+            tuple: A tuple containing the indices of the matching channels and the channels themselves.
+        """
+
         matching_indices = []
         channels = []
         for idx, chn in enumerate(self.channels):
@@ -119,10 +161,28 @@ class nn_studio:
         return matching_indices, channels
 
     def linear_mesh(self):
+        """
+        Construct a linear mesh for the momentum integration. The mesh points are evenly spaced between 1e-6 and 650 MeV, and the weights are given by the spacing between the points.
+
+        Returns:
+            np.ndarray: An array of mesh points.
+        """
 
         return np.linspace(1e-6,650,self.Np)
     
     def gauss_legendre_line_mesh(self,a,b):
+
+        """
+        Construct a Gauss-Legendre mesh for the momentum integration. The mesh points and weights
+
+        Args:
+            a (float): The lower bound of the interval for the momentum integration.
+            b (float): The upper bound of the interval for the momentum integration.
+
+        Returns:
+            tuple: A tuple containing the mesh points and weights.
+        """
+
         x, w = np.polynomial.legendre.leggauss(self.Np)
         # Translate x values from the interval [-1, 1] to [a, b]
         t = 0.5*(x + 1)*(b - a) + a
@@ -131,6 +191,14 @@ class nn_studio:
         return t,u
     
     def gauss_legendre_inf_mesh(self):
+
+        """
+
+        Construct a Gauss-Legendre mesh for the momentum integration on the interval [0, inf). The mesh points and weights are given by the Gauss-Legendre quadrature on the interval [-1, 1], but translated to the interval [0, inf) using the transformation t = scale * tan(pi/4 * (x + 1)), where x are the Gauss-Legendre points. The weights are also transformed accordingly.
+
+        Returns:
+            tuple: A tuple containing the mesh points and weights.
+        """
 
         scale=100.0
         
@@ -147,6 +215,18 @@ class nn_studio:
     @staticmethod
     #a static method is bound to a class rather than the objects for that class
     def triag(a, b, ab):
+        """
+        Check if the triangle inequality is satisfied for the given values of a, b, and ab. This is used to check if the coupling of two angular momenta a and b can give a total angular momentum ab.
+
+        Args:
+            a (float): The first angular momentum.
+            b (float): The second angular momentum.
+            ab (float): The total angular momentum.
+
+        Returns:
+            bool: True if the triangle inequality is satisfied, False otherwise.
+        """
+
         if( ab < abs(a - b) ):
             return False
         if ( ab > a + b ):
@@ -156,12 +236,37 @@ class nn_studio:
     @staticmethod
     #a static method is bound to a class rather than the objects for that class
     def kroenecker_delta(bra,ket,*args):
+
+        """
+        Check if the specified quantum numbers of the bra and ket states are equal. The quantum numbers to check are specified as arguments, e.g., 'j', 'tz', 's', 'pi'. The function will return True if all specified quantum numbers are equal, and False otherwise.
+
+        Args:
+            bra (dict): The bra state.
+            ket (dict): The ket state.
+            *args: The quantum numbers to check.
+
+        Returns:
+            bool: True if all specified quantum numbers are equal, False otherwise.
+        """
+
+
         for ar in args:
             if bra[ar] != ket[ar]:
                 return False
         return True
 
     def lab2rel(self,Tlab,tz):
+
+        """
+        Convert the laboratory kinetic energy Tlab to the relative momentum ko and the reduced mass mu for the given isospin projection tz. The formulas for the conversion depend on the value of tz, which determines the type of scattering (pp, np, or nn).
+
+        Args:
+            Tlab (float): The laboratory kinetic energy in MeV.
+            tz (int): The isospin projection, where tz=-1 corresponds to pp scattering, tz=0 corresponds to np scattering, and tz=+1 corresponds to nn scattering.
+        
+        Returns:
+            tuple: A tuple containing the relative momentum ko and the reduced mass mu.
+        """
     
         if tz == -1:
             mu = const.Mp/2
@@ -185,6 +290,32 @@ class nn_studio:
     @staticmethod
     #a static method is bound to a class rather than the objects for that class
     def map_to_coup_idx(ll,l,s,j):
+
+        """
+        Map the quantum numbers of the partial-wave coupling to the index of the potential matrix element. The mapping is based on the coupling scheme and the order of the potential matrix elements in the code.
+        The mapping is as follows:
+
+        l=ll, s=1, l<j: idx=3 (--)
+
+        l=ll, s=1, l>j: idx=2 (++)
+
+        l=ll, s=1, l=j: idx=1 (uncoupled)
+
+        l=ll, s=0, l=j: idx=0 (uncoupled)
+
+        l!=ll, l<j: idx=5 (-+)
+
+        l!=ll, l>j: idx=4 (+-)
+
+        Args:
+            ll (int): The orbital angular momentum of the ket state.
+            l (int): The orbital angular momentum of the bra state.
+            s (int): The total spin of the two nucleons.
+            j (int): The total angular momentum of the two nucleons.
+
+        Returns:
+            tuple: A tuple containing a boolean indicating if the coupling is valid and the index of the potential matrix element.
+        """
 
         if l == ll:
         
@@ -216,6 +347,23 @@ class nn_studio:
         return coup,idx
     
     def Vmtx(self,this_mesh,ll,l,s,j,t,tz):
+
+        """
+        Construct the potential matrix for the given quantum numbers and the momentum mesh.
+        The potential matrix is constructed by evaluating the potential function for each pair of momentum points in the mesh, and for the given quantum numbers of the partial-wave coupling.
+
+        Args:
+            this_mesh (np.ndarray): The momentum mesh for which to construct the potential matrix.
+            ll (int): The orbital angular momentum of the ket state.
+            l (int): The orbital angular momentum of the bra state.
+            s (int): The total spin of the two nucleons.
+            j (int): The total angular momentum of the two nucleons.
+            t (int): The total isospin of the two nucleons.
+            tz (int): The isospin projection of the two nucleons.
+
+        Returns:
+            np.ndarray: The potential matrix for the given quantum numbers and momentum mesh.
+        """
     
         coup,idx = self.map_to_coup_idx(ll,l,s,j)
         mtx = np.zeros((len(this_mesh), len(this_mesh)))
@@ -225,6 +373,18 @@ class nn_studio:
         return np.array(mtx)
     
     def setup_Vmtx(self,this_channel,ko=False):
+
+        """
+        Construct the potential matrix for the given channel and the momentum mesh.
+        The potential matrix is constructed by evaluating the potential function for each pair of momentum points in the mesh, and for the quantum numbers of the partial-wave coupling specified in the channel.
+
+        Args:
+            this_channel (list): The channel for which to construct the potential matrix. The channel is a list of blocks, where each block is a dictionary containing the quantum numbers of the partial-wave coupling.
+            ko (bool, optional): Whether to include the on-shell momentum ko in the potential matrix. Defaults to False.
+
+        Returns:
+            np.ndarray: The potential matrix for the given channel and momentum mesh.
+        """
 
         if ko==False:
             this_mesh = self.pmesh
@@ -254,6 +414,18 @@ class nn_studio:
         return V, m
 
     def setup_G0_vector(self,ko,mu):
+
+        """
+        Construct the G0 vector for the given relative momentum ko and reduced mass mu.
+        The G0 vector is constructed by evaluating the free Green's function for each momentum point in the mesh, and for the on-shell momentum ko.
+
+        Args:
+            ko (float): The relative momentum.
+            mu (float): The reduced mass.
+
+        Returns:
+            np.ndarray: The G0 vector for the given relative momentum ko and reduced mass mu.
+        """
             
         G = np.zeros((2*self.Np+2), dtype=complex)
 
@@ -269,6 +441,19 @@ class nn_studio:
         return G*2*mu
     
     def setup_GV_kernel(self,channel,Vmtx,ko,mu):
+
+        """
+        Construct the GV kernel for the given channel, potential matrix, relative momentum ko, and reduced mass mu.
+
+        Args:
+            channel (list): The channel for which to construct the GV kernel. The channel is a list of blocks, where each block is a dictionary containing the quantum numbers of the partial-wave coupling.
+            Vmtx (np.ndarray): The potential matrix for the given channel and momentum mesh.
+            ko (float): The relative momentum.
+            mu (float): The reduced mass.
+
+        Returns:
+            np.ndarray: The GV kernel for the given channel, potential matrix, relative momentum ko, and reduced mass mu.
+        """
     
         Np = len(self.pmesh)
         nof_blocks = len(channel)
@@ -286,6 +471,19 @@ class nn_studio:
 
     def setup_VG_kernel(self,channel,Vmtx,ko,mu):
 
+        """
+        Construct the VG kernel for the given channel, potential matrix, relative momentum ko, and reduced mass mu.
+
+        Args:
+            channel (list): The channel for which to construct the VG kernel. The channel is a list of blocks, where each block is a dictionary containing the quantum numbers of the partial-wave coupling.
+            Vmtx (np.ndarray): The potential matrix for the given channel and momentum mesh.
+            ko (float): The relative momentum.
+            mu (float): The reduced mass.
+
+        Returns:
+            np.ndarray: The VG kernel for the given channel, potential matrix, relative momentum ko, and reduced mass mu.
+        """
+
         Np = len(self.pmesh)
         nof_blocks = len(channel)
         Np_chn = int(np.sqrt(nof_blocks)*(self.Np+1))
@@ -301,6 +499,20 @@ class nn_studio:
         return VG
     
     def solve_lippmann_schwinger(self,channel,Vmtx,ko,mu):
+
+        """
+        Solve the Lippmann-Schwinger equation for the given channel, potential matrix, relative momentum ko, and reduced mass mu.
+        The Lippmann-Schwinger equation is solved by matrix inversion, using the GV and VG kernels.
+
+        Args:
+            channel (list): The channel for which to solve the Lippmann-Schwinger equation. The channel is a list of blocks, where each block is a dictionary containing the quantum numbers of the partial-wave coupling.
+            Vmtx (np.ndarray): The potential matrix for the given channel and momentum mesh.
+            ko (float): The relative momentum.
+            mu (float): The reduced mass.
+
+        Returns:
+            np.ndarray: The solution to the Lippmann-Schwinger equation for the given channel, potential matrix, relative momentum ko, and reduced mass mu.
+        """
 
         # matrix inversion:
         # T = V + VGT
@@ -318,6 +530,19 @@ class nn_studio:
     @staticmethod
     #a static method is bound to a class rather than the objects for that class
     def compute_phase_shifts(ko,mu,on_shell_T):
+
+        """
+        Compute the phase shifts for the given relative momentum ko, reduced mass mu, and on-shell T-matrix elements.
+        The phase shifts are computed using the formulas for the Blatt-Biedenharn convention for coupled channels, and the standard formula for uncoupled channels.
+
+        Args:
+            ko (float): The relative momentum.
+            mu (float): The reduced mass.
+            on_shell_T (list): A list of on-shell T-matrix elements, where the first element is T11, the second element is T12, and the third element is T22 for coupled channels, and the first element is T11 for uncoupled channels.
+
+        Returns:
+            np.ndarray: The computed phase shifts for the given relative momentum ko, reduced mass mu, and on-shell T-matrix elements.
+        """
 
         rad2deg = 180.0/np.pi
         
@@ -377,7 +602,16 @@ class nn_studio:
 
             return np.real(delta*rad2deg)
    
-    def compute_Tmtx(self,channels,verbose=False):
+    def compute_Tmtx(self, channels, verbose=False):
+        """
+        Compute the T-matrix for the given channels and the momentum mesh.
+        The T-matrix is computed by solving the Lippmann-Schwinger equation for each channel, using the potential matrix and the G0 vector.
+
+        Args:
+            channels (list): The channels for which to compute the T-matrix. Each channel is a list of blocks, where each block is a dictionary containing the quantum numbers of the partial-wave coupling.
+            verbose (bool, optional): Whether to print verbose output. Defaults to False.
+        """
+
 
         if verbose:
             print(f'computing T-matrices for')
@@ -423,7 +657,19 @@ class nn_studio:
 
             self.phase_shifts.append(np.array(phase_shifts_for_this_channel))      
 
-    def get_Vmtx_from_split(self,V_split,lec_vector):
+    def get_Vmtx_from_split(self, V_split, lec_vector):
+
+        """
+        Get the potential matrix for the given split potential terms and the lec vector.
+        The potential matrix is constructed by summing the split potential terms weighted by the corresponding lec values in the lec vector.
+        
+        Args:
+            V_split (list): A list of split potential terms, where each term is a potential matrix corresponding to a specific variation of the LECs.
+            lec_vector (list): A list of LEC values corresponding to the split potential terms, where the first element is the constant part and the subsequent elements are the variations in the specified directions.
+
+        Returns:
+            np.ndarray: The computed potential matrix.
+        """
 
         V = 0
         for idx, this_V in enumerate(V_split):
@@ -433,6 +679,21 @@ class nn_studio:
         return V
             
     def model_order_reduction(self,channel,Tlab,directions,training_points,verbose=False):
+
+        """
+        Perform model order reduction for the given channel, laboratory kinetic energy Tlab, directions of variation for the low-energy constants (LECs), and training points for the LECs.
+        The model order reduction is performed by splitting the potential matrix into a constant part and split parts corresponding to the variation of the LECs in the specified directions, and then constructing the emulator by computing the relevant kernels and solving the Lippmann-Schwinger equation for the training points.
+
+        Args:
+            channel (list): The channel for which to perform model order reduction. The channel is a list of blocks, where each block is a dictionary containing the quantum numbers of the partial-wave coupling.
+            Tlab (float): The laboratory kinetic energy for which to perform model order reduction.
+            directions (list): A list of directions of variation for the low-energy constants (LECs), where each direction is specified by the name of the LEC to vary.
+            training_points (list): A list of training points for the LECs, where each training point is a list of LEC values corresponding to the specified directions.
+            verbose (bool): Whether to print verbose output.
+
+        Returns:
+            function: The reduced model function.
+        """
 
         if len(channel) > 1:
             exit('model order reduction: limited to one channel at the time')
