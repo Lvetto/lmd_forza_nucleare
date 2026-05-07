@@ -193,7 +193,6 @@ class nn_studio:
     def gauss_legendre_inf_mesh(self):
 
         """
-
         Construct a Gauss-Legendre mesh for the momentum integration on the interval [0, inf). The mesh points and weights are given by the Gauss-Legendre quadrature on the interval [-1, 1], but translated to the interval [0, inf) using the transformation t = scale * tan(pi/4 * (x + 1)), where x are the Gauss-Legendre points. The weights are also transformed accordingly.
 
         Returns:
