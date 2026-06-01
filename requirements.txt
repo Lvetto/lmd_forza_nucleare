@@ -1,0 +1,9 @@
+numpy
+scipy
+emcee
+matplotlib
+ipympl
+ipykernel
+ipywidgets
+corner
+tqdm
